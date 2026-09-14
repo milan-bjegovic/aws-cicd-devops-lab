@@ -60,14 +60,14 @@ jobs:
               commands: [
                 "set -e",
                 "echo === Deployment started ===",
-                "aws --version",
-                "docker --version",
+                "PREVIOUS_IMAGE=$(docker inspect -f '\''{{.Config.Image}}'\'' cicd-backend 2>/dev/null || true)",
+                "echo Previous image: $PREVIOUS_IMAGE",
                 ("aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin " + $registry),
                 ("docker pull " + $image),
                 "docker rm -f cicd-backend || true",
                 ("docker run -d --name cicd-backend --restart unless-stopped -p 3001:3000 " + $image),
                 "sleep 5",
-                "curl -fsS http://localhost:3001/health",
+                "if curl -fsS http://localhost:3001/health; then echo Deployment healthy; else echo Health check failed; docker logs cicd-backend || true; docker rm -f cicd-backend || true; if [ -n \"$PREVIOUS_IMAGE\" ]; then echo Rolling back to $PREVIOUS_IMAGE; docker run -d --name cicd-backend --restart unless-stopped -p 3001:3000 \"$PREVIOUS_IMAGE\"; sleep 5; curl -fsS http://localhost:3001/health; fi; exit 1; fi",
                 "echo === Deployment successful ==="
               ]
             }')
@@ -112,6 +112,6 @@ jobs:
           echo "Deployment status: $STATUS"
 
           if [ "$WAIT_RESULT" -ne 0 ] || [ "$STATUS" != "Success" ]; then
-            echo "Deployment failed"
+            echo "Deployment failed or rollback was triggered"
             exit 1
           fi
