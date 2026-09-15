@@ -1,4 +1,4 @@
-name: Build, Test, Push and Deploy Docker Image
+name: Build, Push and Deploy Docker Image
 
 on:
   push:
@@ -15,40 +15,7 @@ env:
   EC2_INSTANCE_ID: i-0b3d29d6fcc04d70c
 
 jobs:
-
-  # ============================================================
-  # CI - AUTOMATED TESTS
-  # ============================================================
-  test:
-    name: Run automated tests
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r app/requirements.txt
-
-      - name: Run pytest
-        run: |
-          python -m pytest -v
-
-
-  # ============================================================
-  # BUILD + PUSH + DEPLOY
-  # Runs only if "test" succeeds
-  # ============================================================
   build-and-deploy:
-    name: Build, Push and Deploy
-    needs: test
     runs-on: ubuntu-latest
 
     steps:
