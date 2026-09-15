@@ -23,4 +23,4 @@ def test_home():
 
     assert data["application"] == "AWS CI/CD DevOps Lab"
     assert data["status"] == "running"
-    assert data["version"] == "1.0.0"
+    assert data["version"] == "999.0.0"
