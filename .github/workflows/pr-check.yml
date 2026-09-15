@@ -1,0 +1,71 @@
+name: Pull Request CI and Security Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Automated Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r app/requirements.txt
+
+      - name: Run pytest
+        run: |
+          python -m pytest -v
+
+  security:
+    name: Docker Security Scan
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            --provenance=false \
+            --sbom=false \
+            --no-cache \
+            -t aws-cicd-devops-lab:pr .
+
+      - name: Verify security package versions
+        run: |
+          echo "=== setuptools ==="
+          docker run --rm \
+            aws-cicd-devops-lab:pr \
+            python -m pip show setuptools
+
+          echo "=== msgpack ==="
+          docker run --rm \
+            aws-cicd-devops-lab:pr \
+            python -m pip show msgpack
+
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: 'aws-cicd-devops-lab:pr'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
