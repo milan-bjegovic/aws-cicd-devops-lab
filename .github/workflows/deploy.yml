@@ -91,6 +91,16 @@ jobs:
             $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             python -m pip show msgpack
 
+      - name: Find embedded SBOM files
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          echo "=== Searching for SBOM files ==="
+          docker run --rm \
+            $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            sh -c "find / -type f \( -iname '*sbom*' -o -iname '*cyclonedx*' -o -iname '*spdx*' \) 2>/dev/null || true"
+
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@v0.36.0
         with:
@@ -100,6 +110,8 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
+        env:
+          TRIVY_DEBUG: "true"
 
       - name: Tag and push Docker image
         env:
