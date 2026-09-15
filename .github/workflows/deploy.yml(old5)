@@ -70,23 +70,7 @@ jobs:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build --no-cache \
-            -t $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-
-      - name: Verify security package versions
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          echo "=== setuptools ==="
-          docker run --rm \
-            $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
-            python -m pip show setuptools
-
-          echo "=== msgpack ==="
-          docker run --rm \
-            $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
-            python -m pip show msgpack
+          docker build -t $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
 
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@master
