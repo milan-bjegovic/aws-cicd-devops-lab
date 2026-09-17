@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   terraform:
@@ -32,8 +33,17 @@ jobs:
       - name: Terraform Format Check
         run: terraform fmt -check -recursive
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::303974373642:role/GitHubActions-TerraformPlan-aws-cicd-devops-lab
+          aws-region: eu-central-1
+
       - name: Terraform Init
-        run: terraform init -backend=false
+        run: terraform init -input=false
 
       - name: Terraform Validate
         run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -input=false -no-color
