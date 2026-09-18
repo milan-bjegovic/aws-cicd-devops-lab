@@ -1,22 +1,23 @@
-name: Terraform CI
+name: Terraform Apply
 
 on:
-  pull_request:
+  push:
     branches:
       - main
     paths:
       - "terraform/**"
-      - ".github/workflows/terraform.yml"
-      - ".github/workflows/terraform-apply.yml"
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
-  terraform:
-    name: Terraform Validate
+  terraform-apply:
+    name: Terraform Apply
     runs-on: ubuntu-latest
+
+    environment:
+      name: production
 
     defaults:
       run:
@@ -31,13 +32,10 @@ jobs:
         with:
           terraform_version: "1.16.2"
 
-      - name: Terraform Format Check
-        run: terraform fmt -check -recursive
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::303974373642:role/GitHubActions-TerraformPlan-aws-cicd-devops-lab
+          role-to-assume: arn:aws:iam::303974373642:role/GitHubActions-TerraformApply-aws-cicd-devops-lab
           aws-region: eu-central-1
 
       - name: Terraform Init
@@ -47,4 +45,7 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
-        run: terraform plan -input=false -no-color
+        run: terraform plan -input=false -no-color -out=tfplan
+
+      - name: Terraform Apply
+        run: terraform apply -input=false -auto-approve tfplan
