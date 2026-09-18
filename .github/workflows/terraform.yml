@@ -4,10 +4,10 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - "terraform/**"
-      - ".github/workflows/terraform.yml"
-      - ".github/workflows/terraform-apply.yml"
+    # paths:
+    #   - "terraform/**"
+    #   - ".github/workflows/terraform.yml"
+    #   - ".github/workflows/terraform-apply.yml"
 
 permissions:
   contents: read
