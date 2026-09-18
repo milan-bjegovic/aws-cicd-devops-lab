@@ -18,6 +18,7 @@ resource "aws_instance" "app" {
   }
 
   tags = {
-    Name = "devops-lab-01"
+    Name      = "devops-lab-01"
+    ManagedBy = "Terraform"
   }
 }
